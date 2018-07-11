@@ -83,7 +83,7 @@ func (f *LevelFilter) Write(p []byte) (n int, err error) {
 	if ok == false {
 		return len(p), nil
 	}
-	return color.New(cl).Fprintln(f.Writer, string(p))
+	return color.New(cl).Fprint(f.Writer, string(p))
 	// return f.Writer.Write(p)
 }
 

@@ -26,7 +26,7 @@ func TestLevelFilter(t *testing.T) {
 	logger.Println("[WARN] buzz")
 
 	result := buf.String()
-	expected := "[WARN] foo\n[ERROR] bar\n[WARN] buzz\n"
+	expected := "\x1b[33m[WARN] foo\n\x1b[0m\x1b[31m[ERROR] bar\n\x1b[0m\x1b[33m[WARN] buzz\n\x1b[0m"
 	if result != expected {
 		t.Fatalf("bad: %#v", result)
 	}
@@ -50,7 +50,7 @@ func TestLevelFilterCheck(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		result := filter.Check([]byte(testCase.line))
+		_, result := filter.Check([]byte(testCase.line))
 		if result != testCase.check {
 			t.Errorf("Fail: %s", testCase.line)
 		}
@@ -76,7 +76,7 @@ func TestLevelFilter_SetMinLevel(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		result := filter.Check([]byte(testCase.line))
+		_, result := filter.Check([]byte(testCase.line))
 		if result != testCase.checkBefore {
 			t.Errorf("Fail: %s", testCase.line)
 		}
@@ -86,7 +86,7 @@ func TestLevelFilter_SetMinLevel(t *testing.T) {
 	filter.SetMinLevel("WARN")
 
 	for _, testCase := range testCases {
-		result := filter.Check([]byte(testCase.line))
+		_, result := filter.Check([]byte(testCase.line))
 		if result != testCase.checkAfter {
 			t.Errorf("Fail: %s", testCase.line)
 		}
