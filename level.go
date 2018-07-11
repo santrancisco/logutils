@@ -5,6 +5,8 @@ import (
 	"bytes"
 	"io"
 	"sync"
+
+	color "github.com/fatih/color"
 )
 
 type LogLevel string
@@ -30,9 +32,11 @@ type LevelFilter struct {
 	once      sync.Once
 }
 
+var colorlist = []color.Attribute{color.FgRed, color.FgYellow, color.FgGreen, color.FgBlue}
+
 // Check will check a given line if it would be included in the level
 // filter.
-func (f *LevelFilter) Check(line []byte) bool {
+func (f *LevelFilter) Check(line []byte) (color.Attribute, bool) {
 	f.once.Do(f.init)
 
 	// Check for a log level
@@ -45,8 +49,27 @@ func (f *LevelFilter) Check(line []byte) bool {
 		}
 	}
 
-	_, ok := f.badLevels[level]
-	return !ok
+	_, isbad := f.badLevels[level]
+	// if it is in the list of bad levels, we return nothing
+	if isbad {
+		return color.FgBlack, false
+	}
+	cl := color.Reset
+	// This is where we determine the color of the log.
+	// Assuming the highest severity log is always RED, we pre-determine the color for the last 4
+	// highest severity from Blue, Green, Yellow and Red. Anything fall outside of this will have
+	// default terminal color.
+	for i, v := range f.Levels {
+		if v == level {
+			gap := len(f.Levels) - i - 1
+			if gap > len(colorlist) {
+				break
+			}
+			cl = colorlist[gap]
+			break
+		}
+	}
+	return cl, true
 }
 
 func (f *LevelFilter) Write(p []byte) (n int, err error) {
@@ -56,11 +79,12 @@ func (f *LevelFilter) Write(p []byte) (n int, err error) {
 	// this method, assuming we're dealing with a single, complete line
 	// of log data.
 
-	if !f.Check(p) {
+	cl, ok := f.Check(p)
+	if ok == false {
 		return len(p), nil
 	}
-
-	return f.Writer.Write(p)
+	return color.New(cl).Fprintln(f.Writer, string(p))
+	// return f.Writer.Write(p)
 }
 
 // SetMinLevel is used to update the minimum log level

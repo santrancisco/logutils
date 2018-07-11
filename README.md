@@ -1,3 +1,11 @@
+# San modified version
+
+This modified version of logutils includes fatih/color libary. I used a simple math operation to determine the color we want to attach to each log line.
+
+Assuming the highest severity log is always RED, we pre-determine the color for the last 4 highest severity from Blue, Green, Yellow and Red. Anything fall outside of this will have default terminal color.
+
+Considering most of the time, my filter ares: `[]logutils.LogLevel{"DEBUG","INFO", "WARN", "ERROR"},`, this will color all 4 log severity levels. 
+
 # logutils
 
 logutils is a Go package that augments the standard library "log" package
